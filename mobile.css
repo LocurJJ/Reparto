@@ -106,8 +106,31 @@
   font-size: 14px;
 }
 
+.deuda-whatsapp {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.deuda-whatsapp button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #17825d;
+  border-radius: 8px;
+  background: #17825d;
+  color: white;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
 @media (max-width: 850px) {
   .fecha-destacada {
     width: 100%;
+  }
+
+  .deuda-whatsapp {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
