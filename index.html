@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reparto - Panaderia Josue</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="inicio">
+  <header class="hero">
+    <p class="subtitulo">Sistema de reparto</p>
+    <h1>Panaderia Josue</h1>
+    <p id="usuarioActual" class="usuario">Usuario sin seleccionar</p>
+  </header>
+
+  <nav class="menu">
+    <button onclick="mostrarSeccion('usuarios')">Usuario</button>
+    <a href="reparto.html">Reparto</a>
+    <button onclick="mostrarSeccion('configuracion')">Configuracion</button>
+    <a id="linkReportes" href="reportes.html">Reportes</a>
+  </nav>
+
+  <main class="contenedor">
+    <section id="pedidosInicio" class="tarjeta pedidos-inicio oculto">
+      <div class="encabezado-seccion">
+        <div>
+          <h2>Pedidos para confirmar</h2>
+          <p>Confirma con tilde o rechaza con X. Los pesables necesitan precio final.</p>
+        </div>
+      </div>
+      <div id="listaPedidos"></div>
+      <div id="comprobantesPedidos" class="comprobantes"></div>
+    </section>
+
+    <section id="usuarios" class="seccion tarjeta">
+      <h2>Elegir usuario</h2>
+      <div class="botones">
+        <button onclick="elegirUsuario('Ulices')">Ulices</button>
+        <button onclick="elegirUsuario('Mauro')">Mauro</button>
+        <button onclick="elegirUsuario('Ivan')">Ivan</button>
+        <button onclick="elegirUsuario('Central')">Central</button>
+        <button onclick="elegirUsuario('Josue')">Josue</button>
+      </div>
+
+      <h3>Ingresos guardados</h3>
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+            </tr>
+          </thead>
+          <tbody id="tablaIngresos"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="configuracion" class="seccion tarjeta">
+      <h2>Configuracion</h2>
+
+      <div class="dos-columnas">
+        <article>
+          <h3>Precios generales</h3>
+          <form id="formPrecio" class="formulario">
+            <input type="hidden" id="precioId">
+            <label>Producto <input id="productoNombre" required placeholder="Pan"></label>
+            <label>Precio <input id="productoPrecio" type="number" min="0" step="1" required placeholder="2200"></label>
+            <label class="check-line"><input id="productoPesable" type="checkbox"> Pesable</label>
+            <button type="submit">Guardar precio</button>
+          </form>
+          <div class="tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Precio</th>
+                  <th>Tipo</th>
+                  <th>Editar</th>
+                </tr>
+              </thead>
+              <tbody id="tablaPrecios"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article>
+          <h3>Clientes</h3>
+          <form id="formCliente" class="formulario">
+            <input type="hidden" id="clienteId">
+            <label>Nombre <input id="clienteNombre" required placeholder="Nombre del cliente"></label>
+            <label>Direccion <input id="clienteDireccion" placeholder="Calle 123"></label>
+            <label>Horario preferencia <input id="clienteHorario" placeholder="9 a 12 hs"></label>
+            <label>Precio especial pan <input id="clientePrecioPan" type="number" min="0" step="1" placeholder="Vacio usa general"></label>
+            <label>Precio especial factura <input id="clientePrecioFactura" type="number" min="0" step="1" placeholder="Vacio usa general"></label>
+            <label>Limite de deuda <input id="clienteLimite" type="number" min="0" step="1" placeholder="30000"></label>
+            <label>Lugar en la lista <input id="clienteOrden" type="number" min="1" step="1" placeholder="1"></label>
+            <button type="submit">Guardar cliente</button>
+          </form>
+        </article>
+      </div>
+
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Direccion</th>
+              <th>Horario</th>
+              <th>Pan</th>
+              <th>Factura</th>
+              <th>Limite deuda</th>
+              <th>Lugar</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaClientes"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
