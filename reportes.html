@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="reportes">
+  <header class="barra">
+    <div>
+      <p class="subtitulo">Solo Josue</p>
+      <h1>Reportes</h1>
+      <p id="usuarioActual" class="usuario">Usuario sin seleccionar</p>
+    </div>
+    <nav class="acciones-header">
+      <a href="index.html">Inicio</a>
+      <a href="reparto.html">Reparto</a>
+    </nav>
+  </header>
+
+  <main class="contenedor ancho">
+    <section id="bloqueSinPermiso" class="tarjeta aviso">
+      <h2>Reportes bloqueados</h2>
+      <p>Para ver esta pantalla primero elegi el usuario Josue en el inicio.</p>
+      <a href="index.html">Ir al inicio</a>
+    </section>
+
+    <section id="bloqueReportes" class="reportes">
+      <article class="tarjeta">
+        <h2>Ingreso total por dia</h2>
+        <canvas id="graficoTotal" width="700" height="260"></canvas>
+      </article>
+      <article class="tarjeta">
+        <h2>Ingreso efectivo</h2>
+        <canvas id="graficoEfectivo" width="700" height="260"></canvas>
+      </article>
+      <article class="tarjeta">
+        <h2>Ingreso MP</h2>
+        <canvas id="graficoMp" width="700" height="260"></canvas>
+      </article>
+      <article class="tarjeta">
+        <h2>Historial de pan llevado</h2>
+        <ol id="topKilos" class="ranking"></ol>
+      </article>
+      <article class="tarjeta">
+        <h2>Mayores deudas</h2>
+        <ol id="topDeudas" class="ranking deudas"></ol>
+      </article>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
