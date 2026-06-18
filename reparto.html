@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reparto</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="mobile.css?v=4">
 </head>
 <body data-page="reparto">
   <header class="barra">
@@ -28,11 +28,16 @@
           <p>Edita kilos, pagos y productos. Cuando cargues efectivo o MP se guarda la hora de pago.</p>
         </div>
         <div class="acciones">
-          <input id="fechaReparto" type="date">
+          <label class="fecha-destacada" for="fechaReparto">
+            Dia de reparto
+            <input id="fechaReparto" type="date">
+          </label>
           <button id="btnNuevoDia">Nuevo dia +</button>
           <button id="btnBorrarDia" class="peligro oculto" type="button">Borrar dia</button>
         </div>
       </div>
+
+      <section id="panRallarPendiente" class="historial-dia aviso-rallar"></section>
 
       <div class="resumen">
         <div><span>Total vendido</span><strong id="totalVendido">$0</strong></div>
@@ -69,7 +74,6 @@
       <div class="dias-tabs" id="diasTabs"></div>
 
       <section id="historialPedidosDia" class="historial-dia"></section>
-      <section id="panRallarPendiente" class="historial-dia"></section>
     </section>
   </main>
 
@@ -102,8 +106,8 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-  <script src="firebase-sync.js"></script>
-  <script src="script.js"></script>
-  <script src="quick-pay.js"></script>
+  <script src="firebase-sync.js?v=4"></script>
+  <script src="script.js?v=4"></script>
+  <script src="quick-pay.js?v=4"></script>
 </body>
 </html>
