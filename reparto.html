@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reparto</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="reparto">
+  <header class="barra">
+    <div>
+      <p class="subtitulo">Planilla diaria</p>
+      <h1>Reparto</h1>
+      <p id="usuarioActual" class="usuario">Usuario sin seleccionar</p>
+    </div>
+    <nav class="acciones-header">
+      <a href="index.html">Inicio</a>
+      <a id="linkReportes" href="reportes.html">Reportes</a>
+    </nav>
+  </header>
+
+  <main class="contenedor ancho">
+    <section class="tarjeta">
+      <div class="encabezado-seccion">
+        <div>
+          <h2>Clientes del dia</h2>
+          <p>Edita kilos, pagos y productos. Cuando cargues efectivo o MP se guarda la hora de pago.</p>
+        </div>
+        <div class="acciones">
+          <input id="fechaReparto" type="date">
+          <button id="btnNuevoDia">Nuevo dia +</button>
+          <button id="btnBorrarDia" class="peligro oculto" type="button">Borrar dia</button>
+        </div>
+      </div>
+
+      <div class="resumen">
+        <div><span>Total vendido</span><strong id="totalVendido">$0</strong></div>
+        <div><span>Efectivo</span><strong id="totalEfectivo">$0</strong></div>
+        <div><span>MP</span><strong id="totalMp">$0</strong></div>
+        <div><span>Deuda</span><strong id="totalDeuda">$0</strong></div>
+      </div>
+
+      <div class="tabla-scroll">
+        <table class="tabla-reparto">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Kg</th>
+              <th>Debe</th>
+              <th>Pago</th>
+              <th>MP</th>
+              <th>Cuenta</th>
+              <th>Otros</th>
+              <th>Fact.</th>
+              <th>Prepizza</th>
+              <th>Pan rallado</th>
+              <th>Pan para rallar</th>
+              <th>Observaciones</th>
+              <th>En contra</th>
+              <th>Hora pago</th>
+              <th>Mapa</th>
+            </tr>
+          </thead>
+          <tbody id="tablaReparto"></tbody>
+        </table>
+      </div>
+
+      <div class="dias-tabs" id="diasTabs"></div>
+
+      <section id="historialPedidosDia" class="historial-dia"></section>
+      <section id="panRallarPendiente" class="historial-dia"></section>
+    </section>
+  </main>
+
+  <div id="modalOtros" class="modal oculto" role="dialog" aria-modal="true">
+    <div class="modal-contenido">
+      <div class="encabezado-seccion">
+        <div>
+          <h2>Otros productos</h2>
+          <p id="modalCliente">Cliente</p>
+        </div>
+        <button type="button" onclick="cerrarOtros()">Cerrar</button>
+      </div>
+
+      <input id="buscarOtro" class="buscador-productos" type="search" placeholder="Buscar producto..." oninput="renderOtrosModal()">
+
+      <div class="venta-otros">
+        <aside>
+          <h3>Pedido</h3>
+          <div id="listaOtrosVenta" class="lista-venta"></div>
+        </aside>
+        <div id="grillaOtros" class="grilla-productos"></div>
+      </div>
+
+      <div class="modal-total">
+        <strong id="totalOtrosModal">$0</strong>
+        <button type="button" onclick="confirmarOtros()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
