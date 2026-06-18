@@ -60,56 +60,65 @@
     };
   }
 
-  let datos;
-  try {
-    datos = JSON.parse(localStorage.getItem(CLAVE) || "{}");
-  } catch (error) {
-    datos = {};
-  }
+  function reparar() {
+    let datos;
+    try {
+      datos = JSON.parse(localStorage.getItem(CLAVE) || "{}");
+    } catch (error) {
+      datos = {};
+    }
 
-  let cambio = false;
-  if (!Array.isArray(datos.precios) || datos.precios.length === 0) {
-    datos.precios = preciosBase();
-    cambio = true;
-  }
-
-  if (!Array.isArray(datos.clientes) || datos.clientes.length === 0) {
-    datos.clientes = clientesBase();
-    cambio = true;
-  }
-
-  if (!datos.fechaActual) {
-    datos.fechaActual = hoy();
-    cambio = true;
-  }
-
-  if (!datos.dias || typeof datos.dias !== "object") {
-    datos.dias = {};
-    cambio = true;
-  }
-
-  if (!Array.isArray(datos.dias[datos.fechaActual])) {
-    datos.dias[datos.fechaActual] = [];
-    cambio = true;
-  }
-
-  datos.clientes.forEach((cliente, indice) => {
-    if (!cliente.orden) {
-      cliente.orden = indice + 1;
+    let cambio = false;
+    if (!Array.isArray(datos.precios) || datos.precios.length === 0) {
+      datos.precios = preciosBase();
       cambio = true;
     }
-    if (!datos.dias[datos.fechaActual].some((fila) => fila.clienteId === cliente.id)) {
-      datos.dias[datos.fechaActual].push(filaVacia(cliente.id));
+
+    if (!Array.isArray(datos.clientes) || datos.clientes.length === 0) {
+      datos.clientes = clientesBase();
       cambio = true;
     }
-  });
 
-  if (!Array.isArray(datos.ingresos)) datos.ingresos = [];
-  if (!Array.isArray(datos.pedidos)) datos.pedidos = [];
-  if (!Array.isArray(datos.panParaRallar)) datos.panParaRallar = [];
-  if (!datos.usuarioActual) datos.usuarioActual = "";
+    if (!datos.fechaActual) {
+      datos.fechaActual = hoy();
+      cambio = true;
+    }
 
-  if (cambio) {
-    localStorage.setItem(CLAVE, JSON.stringify(datos));
+    if (!datos.dias || typeof datos.dias !== "object") {
+      datos.dias = {};
+      cambio = true;
+    }
+
+    if (!Array.isArray(datos.dias[datos.fechaActual])) {
+      datos.dias[datos.fechaActual] = [];
+      cambio = true;
+    }
+
+    datos.clientes.forEach((cliente, indice) => {
+      if (!cliente.orden) {
+        cliente.orden = indice + 1;
+        cambio = true;
+      }
+      if (!datos.dias[datos.fechaActual].some((fila) => fila.clienteId === cliente.id)) {
+        datos.dias[datos.fechaActual].push(filaVacia(cliente.id));
+        cambio = true;
+      }
+    });
+
+    if (!Array.isArray(datos.ingresos)) datos.ingresos = [];
+    if (!Array.isArray(datos.pedidos)) datos.pedidos = [];
+    if (!Array.isArray(datos.panParaRallar)) datos.panParaRallar = [];
+    if (!datos.usuarioActual) datos.usuarioActual = "";
+
+    if (cambio) {
+      localStorage.setItem(CLAVE, JSON.stringify(datos));
+      if (window.renderPrecios) window.renderPrecios();
+      if (window.renderClientes) window.renderClientes();
+      if (window.renderReparto) window.renderReparto();
+    }
   }
+
+  reparar();
+  setTimeout(reparar, 800);
+  setTimeout(reparar, 2000);
 })();
