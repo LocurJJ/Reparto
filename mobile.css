@@ -12,3 +12,27 @@
   outline: 3px solid rgba(34, 102, 211, 0.28);
   outline-offset: 3px;
 }
+
+.modal-pago {
+  max-width: 420px;
+}
+
+.modal-pago h2 {
+  margin-bottom: 4px;
+}
+
+.modal-pago p {
+  margin: 0 0 14px;
+  color: #60708a;
+  font-weight: 800;
+}
+
+.input-pago-rapido {
+  width: 100%;
+  min-height: 58px;
+  padding: 10px 14px;
+  border: 2px solid #cbd6e6;
+  border-radius: 8px;
+  font-size: 28px;
+  font-weight: 800;
+}
