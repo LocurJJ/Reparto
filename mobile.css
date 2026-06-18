@@ -1,78 +1,14 @@
-@media (max-width: 700px) {
-  body { font-size: 15px; }
-  .contenedor.ancho, .contenedor { width: min(100% - 12px, 980px); }
-  .tarjeta { padding: 10px; border-radius: 8px; }
-  .resumen { gap: 8px; }
-  .resumen div { padding: 10px; }
-  .resumen strong { font-size: 20px; }
-  .tabla-scroll { overflow: visible; border: 0; background: transparent; }
-  .tabla-reparto, .tabla-reparto tbody, .tabla-reparto tr, .tabla-reparto td { display: block; width: 100%; }
-  .tabla-reparto thead { display: none; }
-  .tabla-reparto tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(88px, 0.75fr) minmax(0, 1fr);
-    margin: 0 0 12px;
-    overflow: hidden;
-    border: 1px solid #aebfe0;
-    border-radius: 8px;
-    background: white;
-  }
-  .tabla-reparto td {
-    min-height: 74px;
-    padding: 9px;
-    border: 0;
-    border-right: 1px solid #aebfe0;
-    border-bottom: 1px solid #aebfe0;
-    white-space: normal;
-  }
-  .tabla-reparto td::before {
-    display: block;
-    margin-bottom: 5px;
-    color: #60708a;
-    font-size: 11px;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-  .tabla-reparto td:nth-child(1)::before { content: "Cliente"; display: none; }
-  .tabla-reparto td:nth-child(2)::before { content: "Kg"; }
-  .tabla-reparto td:nth-child(3)::before { content: "Debe"; }
-  .tabla-reparto td:nth-child(4)::before { content: "Pago"; }
-  .tabla-reparto td:nth-child(5)::before { content: "MP"; }
-  .tabla-reparto td:nth-child(6)::before { content: "Cuenta"; }
-  .tabla-reparto td:nth-child(7)::before { content: "Otros"; }
-  .tabla-reparto td:nth-child(8)::before { content: "Fact."; }
-  .tabla-reparto td:nth-child(9)::before { content: "Prepizza"; }
-  .tabla-reparto td:nth-child(10)::before { content: "Pan rallado"; }
-  .tabla-reparto td:nth-child(11)::before { content: "Pan para rallar"; }
-  .tabla-reparto td:nth-child(12)::before { content: "Obs."; }
-  .tabla-reparto td:nth-child(13)::before { content: "En contra"; }
-  .tabla-reparto td:nth-child(14)::before { content: "Hora"; }
-  .tabla-reparto td:nth-child(15)::before { content: "Mapa"; }
-  .tabla-reparto td:nth-child(1) {
-    min-width: 0;
-    grid-row: span 2;
-    font-size: 24px;
-    font-weight: 900;
-    line-height: 1.05;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .tabla-reparto td:nth-child(3), .tabla-reparto td:nth-child(6) {
-    min-width: 0;
-    font-size: 20px;
-    line-height: 1.1;
-    word-break: keep-all;
-  }
-  .tabla-reparto td:nth-child(6) { grid-column: 3; }
-  .tabla-reparto td:nth-child(12), .tabla-reparto td:nth-child(14), .tabla-reparto td:nth-child(15) {
-    grid-column: 1 / -1;
-    min-height: auto;
-  }
-  .tabla-reparto input, .tabla-reparto .input-observacion, .tabla-reparto .boton-otros {
-    width: 100%;
-    min-width: 0;
-    min-height: 42px;
-    font-size: 18px;
-  }
+.boton-cliente-pago {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.boton-cliente-pago:focus-visible {
+  outline: 3px solid rgba(34, 102, 211, 0.28);
+  outline-offset: 3px;
 }
