@@ -36,3 +36,35 @@
   font-size: 28px;
   font-weight: 800;
 }
+
+.producto-pendiente.compacta {
+  grid-template-columns: minmax(190px, 1fr) 110px 42px 42px;
+}
+
+.producto-confirmacion {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 1px solid #cbd6e6;
+  border-radius: 8px;
+  background: white;
+  color: #172034;
+  text-align: left;
+}
+
+.producto-confirmacion strong,
+.producto-confirmacion span {
+  display: block;
+}
+
+.producto-confirmacion span {
+  color: #60708a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.producto-pendiente .producto-confirmacion {
+  width: 100%;
+  color: #172034;
+  font-size: 14px;
+}
