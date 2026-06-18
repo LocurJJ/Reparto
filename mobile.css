@@ -13,6 +13,43 @@
   outline-offset: 3px;
 }
 
+.fecha-destacada {
+  min-width: 260px;
+  color: #172034;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.fecha-destacada input {
+  min-height: 50px;
+  border: 2px solid #2266d3;
+  background: #f8fbff;
+  color: #172034;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.aviso-rallar {
+  margin: 0 0 16px;
+}
+
+.aviso-rallar:not(:empty) {
+  padding: 14px;
+  border: 2px solid #e7b416;
+  border-radius: 8px;
+  background: #fff8df;
+}
+
+.aviso-rallar h3 {
+  margin-top: 0;
+  color: #6f5200;
+}
+
+.aviso-rallar .pendiente-rallar {
+  background: white;
+}
+
 .modal-pago {
   max-width: 420px;
 }
@@ -67,4 +104,10 @@
   width: 100%;
   color: #172034;
   font-size: 14px;
+}
+
+@media (max-width: 850px) {
+  .fecha-destacada {
+    width: 100%;
+  }
 }
