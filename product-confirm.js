@@ -1,5 +1,6 @@
 (function () {
   let actual = null;
+  const productos = new Map();
 
   function numero(valor) {
     return Number(String(valor || "0").replace(",", ".")) || 0;
@@ -19,6 +20,10 @@
       return Math.floor((numero(producto.kgFinal || producto.cantidad) * numero(producto.precioKilo || producto.precio)) / 50) * 50;
     }
     return numero(producto.precio) * numero(producto.cantidad);
+  }
+
+  function clave(pedidoId, indice) {
+    return `${pedidoId}:${indice}`;
   }
 
   function asegurarModal() {
@@ -55,19 +60,11 @@
     });
   }
 
-  function productoActual() {
-    if (!actual || !window.datos) return null;
-    const pedido = window.datos.pedidos.find((item) => item.id === actual.pedidoId);
-    if (!pedido) return null;
-    return { pedido, producto: pedido.productos[actual.indice] };
-  }
-
   window.abrirConfirmacionProducto = function abrirConfirmacionProducto(pedidoId, indice) {
     asegurarModal();
     actual = { pedidoId, indice };
-    const encontrado = productoActual();
-    if (!encontrado) return;
-    const producto = encontrado.producto;
+    const producto = productos.get(clave(pedidoId, indice));
+    if (!producto) return;
     document.getElementById("confirmacionProductoNombre").textContent = producto.nombre;
     document.getElementById("confirmacionProductoCantidadLabel").textContent = producto.pesable ? "Kilos a confirmar" : "Cantidad a confirmar";
     document.getElementById("confirmacionProductoCantidad").value = producto.pesable ? (producto.kgFinal || producto.cantidad || "") : (producto.cantidad || "");
@@ -89,26 +86,27 @@
   }
 
   function confirmar() {
-    const encontrado = productoActual();
-    if (!encontrado) return;
-    const producto = encontrado.producto;
+    if (!actual) return;
+    const producto = productos.get(clave(actual.pedidoId, actual.indice));
+    if (!producto) return;
     const cantidad = numero(document.getElementById("confirmacionProductoCantidad").value);
     if (!Number.isFinite(cantidad) || cantidad <= 0) {
       alert("Escribi una cantidad valida.");
       return;
     }
+
     if (producto.pesable) {
       const precioKilo = numero(document.getElementById("confirmacionProductoPrecio").value);
       if (!Number.isFinite(precioKilo) || precioKilo <= 0) {
         alert("Escribi un precio por kg valido.");
         return;
       }
-      producto.kgFinal = cantidad;
-      producto.precioKilo = precioKilo;
-      producto.totalFinal = totalProducto(producto);
+      window.cambiarDatoProductoPedido(actual.pedidoId, actual.indice, "kgFinal", cantidad);
+      window.cambiarDatoProductoPedido(actual.pedidoId, actual.indice, "precioKilo", precioKilo);
     } else {
-      producto.cantidad = cantidad;
+      window.cambiarDatoProductoPedido(actual.pedidoId, actual.indice, "cantidad", cantidad);
     }
+
     const pedidoId = actual.pedidoId;
     const indice = actual.indice;
     cerrar();
@@ -116,6 +114,7 @@
   }
 
   window.renderProductoPendiente = function renderProductoPendiente(pedidoId, producto, indice) {
+    productos.set(clave(pedidoId, indice), producto);
     const detalle = producto.pesable
       ? `${numero(producto.kgFinal || producto.cantidad).toLocaleString("es-AR")} kg x ${pesos(producto.precioKilo || producto.precio)}/kg`
       : `${numero(producto.cantidad).toLocaleString("es-AR")} un. x ${pesos(producto.precio)}`;
