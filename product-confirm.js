@@ -3,7 +3,14 @@
   const productos = new Map();
 
   function numero(valor) {
-    return Number(String(valor || "0").replace(",", ".")) || 0;
+    if (typeof valor === "number") return Number.isFinite(valor) ? valor : 0;
+    let limpio = String(valor || "0").trim().replace(/\$/g, "").replace(/\s/g, "");
+    if (limpio.includes(",")) {
+      limpio = limpio.replace(/\./g, "").replace(",", ".");
+    } else if (/^-?\d{1,3}(\.\d{3})+$/.test(limpio)) {
+      limpio = limpio.replace(/\./g, "");
+    }
+    return Number(limpio || 0) || 0;
   }
 
   function pesos(valor) {
@@ -16,8 +23,10 @@
 
   function totalProducto(producto) {
     if (producto.pesable) {
-      if (numero(producto.totalFinal) > 0) return numero(producto.totalFinal);
-      return Math.floor((numero(producto.kgFinal || producto.cantidad) * numero(producto.precioKilo || producto.precio)) / 50) * 50;
+      const kg = numero(producto.kgFinal || producto.cantidad);
+      const precioKilo = numero(producto.precioKilo || producto.precio);
+      if (kg > 0 && precioKilo > 0) return Math.floor((kg * precioKilo) / 50) * 50;
+      return numero(producto.totalFinal);
     }
     return numero(producto.precio) * numero(producto.cantidad);
   }
