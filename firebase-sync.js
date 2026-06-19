@@ -68,6 +68,14 @@ const REPARTO_FIREBASE_CONFIG = {
     catch { return reparar({}); }
   }
 
+  function soloCambioUsuario(antes, despues) {
+    const a = {...antes};
+    const b = {...despues};
+    delete a.usuarioActual; delete a.ingresos; delete a.actualizado;
+    delete b.usuarioActual; delete b.ingresos; delete b.actualizado;
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+
   if (!window.firebase) return;
   if (!firebase.apps.length) firebase.initializeApp(REPARTO_FIREBASE_CONFIG);
   const ref = firebase.database().ref("reparto/datos");
@@ -75,12 +83,21 @@ const REPARTO_FIREBASE_CONFIG = {
 
   localStorage.setItem = function (key, value) {
     if (key !== CLAVE) return setOriginal(key, value);
+    const anterior = leerLocal();
     let nuevo;
     try { nuevo = reparar(JSON.parse(value)); }
-    catch { nuevo = leerLocal(); }
+    catch { nuevo = anterior; }
     nuevo.actualizado = Date.now();
     const texto = JSON.stringify(nuevo);
     setOriginal(key, texto);
+
+    if (soloCambioUsuario(anterior, nuevo)) {
+      const parcial = {usuarioActual: nuevo.usuarioActual, ingresos: nuevo.ingresos, actualizado: nuevo.actualizado};
+      if (remotoReferencia) Object.assign(remotoReferencia, parcial);
+      ref.update(parcial).catch(error => console.error("No se pudo guardar usuario en Firebase", error));
+      return;
+    }
+
     if (remotoReferencia && puntaje(nuevo) + 20 < puntaje(remotoReferencia)) {
       console.warn("No se subio una copia local incompleta a Firebase.");
       return;
