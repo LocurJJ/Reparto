@@ -154,7 +154,6 @@ const REPARTO_FIREBASE_CONFIG = {
     if (!window.firebase.apps.length) window.firebase.initializeApp(REPARTO_FIREBASE_CONFIG);
     const ref = window.firebase.database().ref("reparto/datos");
     const setItemOriginal = localStorage.setItem.bind(localStorage);
-    let aplicandoRemoto = false;
 
     localStorage.setItem = function setItemConFirebase(key, value) {
       if (key !== clave) {
@@ -169,10 +168,9 @@ const REPARTO_FIREBASE_CONFIG = {
         datosParaGuardar = leerLocal();
       }
 
-      if (!aplicandoRemoto) datosParaGuardar.actualizado = Date.now();
+      datosParaGuardar.actualizado = Date.now();
       const texto = JSON.stringify(datosParaGuardar);
       setItemOriginal(key, texto);
-      if (aplicandoRemoto) return;
 
       try {
         ref.set(datosParaGuardar);
@@ -184,28 +182,21 @@ const REPARTO_FIREBASE_CONFIG = {
     const localInicial = repararDatos(leerLocal()).datos;
     setItemOriginal(clave, JSON.stringify(localInicial));
 
-    ref.on("value", (snapshot) => {
+    ref.once("value").then((snapshot) => {
       const remoto = repararDatos(snapshot.val());
       const local = leerLocal();
 
-      if (remoto.reparado || !snapshot.val()) {
-        ref.set(local.actualizado >= remoto.datos.actualizado ? local : remoto.datos);
-        return;
-      }
-
-      if (Number(local.actualizado || 0) > Number(remoto.datos.actualizado || 0)) {
+      if (!snapshot.val() || remoto.reparado || Number(local.actualizado || 0) >= Number(remoto.datos.actualizado || 0)) {
         ref.set(local);
         return;
       }
 
       const textoRemoto = JSON.stringify(remoto.datos);
       if (localStorage.getItem(clave) === textoRemoto) return;
-
-      aplicandoRemoto = true;
       setItemOriginal(clave, textoRemoto);
-      aplicandoRemoto = false;
-
       if (document.readyState !== "loading") window.location.reload();
+    }).catch((error) => {
+      console.error("No se pudo leer Firebase", error);
     });
   } catch (error) {
     console.error("No se pudo iniciar Firebase", error);
