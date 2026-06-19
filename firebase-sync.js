@@ -58,6 +58,7 @@ const REPARTO_FIREBASE_CONFIG = {
       panParaRallar: [],
       clientes,
       fechaActual: fecha,
+      actualizado: Date.now(),
       dias: {
         [fecha]: clientes.map((cliente, indice) => ({
           clienteId: cliente.id,
@@ -93,6 +94,10 @@ const REPARTO_FIREBASE_CONFIG = {
     }
     if (!limpio.fechaActual) {
       limpio.fechaActual = hoy();
+      reparado = true;
+    }
+    if (!limpio.actualizado) {
+      limpio.actualizado = Date.now();
       reparado = true;
     }
     if (!limpio.dias || typeof limpio.dias !== "object") {
@@ -137,6 +142,14 @@ const REPARTO_FIREBASE_CONFIG = {
     return { datos: limpio, reparado };
   }
 
+  function leerLocal() {
+    try {
+      return repararDatos(JSON.parse(localStorage.getItem(clave) || "{}")).datos;
+    } catch (error) {
+      return repararDatos({}).datos;
+    }
+  }
+
   try {
     if (!window.firebase.apps.length) window.firebase.initializeApp(REPARTO_FIREBASE_CONFIG);
     const ref = window.firebase.database().ref("reparto/datos");
@@ -149,33 +162,44 @@ const REPARTO_FIREBASE_CONFIG = {
         return;
       }
 
-      let texto = value;
+      let datosParaGuardar;
       try {
-        texto = JSON.stringify(repararDatos(JSON.parse(value)).datos);
+        datosParaGuardar = repararDatos(JSON.parse(value)).datos;
       } catch (error) {
-        texto = value;
+        datosParaGuardar = leerLocal();
       }
 
+      if (!aplicandoRemoto) datosParaGuardar.actualizado = Date.now();
+      const texto = JSON.stringify(datosParaGuardar);
       setItemOriginal(key, texto);
       if (aplicandoRemoto) return;
 
       try {
-        ref.set(JSON.parse(texto));
+        ref.set(datosParaGuardar);
       } catch (error) {
         console.error("No se pudo guardar en Firebase", error);
       }
     };
 
-    const localInicial = repararDatos(JSON.parse(localStorage.getItem(clave) || "{}"));
-    if (localInicial.reparado) setItemOriginal(clave, JSON.stringify(localInicial.datos));
+    const localInicial = repararDatos(leerLocal()).datos;
+    setItemOriginal(clave, JSON.stringify(localInicial));
 
     ref.on("value", (snapshot) => {
       const remoto = repararDatos(snapshot.val());
-      const textoRemoto = JSON.stringify(remoto.datos);
-      const textoLocal = localStorage.getItem(clave);
+      const local = leerLocal();
 
-      if (remoto.reparado || !snapshot.val()) ref.set(remoto.datos);
-      if (textoLocal === textoRemoto) return;
+      if (remoto.reparado || !snapshot.val()) {
+        ref.set(local.actualizado >= remoto.datos.actualizado ? local : remoto.datos);
+        return;
+      }
+
+      if (Number(local.actualizado || 0) > Number(remoto.datos.actualizado || 0)) {
+        ref.set(local);
+        return;
+      }
+
+      const textoRemoto = JSON.stringify(remoto.datos);
+      if (localStorage.getItem(clave) === textoRemoto) return;
 
       aplicandoRemoto = true;
       setItemOriginal(clave, textoRemoto);
