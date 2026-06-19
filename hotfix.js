@@ -56,6 +56,7 @@
 
   try {
     renderPedidosInicio();
+    if (document.body.dataset.page === "reparto" && typeof renderReparto === "function") renderReparto();
   } catch (error) {
     console.warn("No se pudo aplicar hotfix de pedidos", error);
   }
