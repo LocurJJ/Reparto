@@ -9,196 +9,97 @@ const REPARTO_FIREBASE_CONFIG = {
   measurementId: "G-ETVYB93YFH"
 };
 
-(function sincronizarFirebase() {
-  const clave = "reparto-panaderia-josue";
-  if (!window.firebase) return;
+(function () {
+  const CLAVE = "reparto-panaderia-josue";
+  let remotoReferencia = null;
 
-  function idNuevo() {
-    if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
-    return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
-  }
+  function numero(valor) { return Number(valor || 0); }
+  function idNuevo() { return crypto && crypto.randomUUID ? crypto.randomUUID() : "id-" + Date.now() + "-" + Math.random().toString(16).slice(2); }
+  function hoy() { return new Date().toISOString().slice(0, 10); }
 
-  function hoy() {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  function baseCompleta() {
-    const clientes = [
-      ["Adolfina", 2, 4400, 4400, 20000],
-      ["Antonia", 4, 8600, 8500, 20000],
-      ["Maria", 3, -200, 0, 15000],
-      ["Serafin", 2, 8800, 4400, 25000],
-      ["Clara", 0, 0, 0, 12000],
-      ["Mercedes", 0, 84000, 0, 50000],
-      ["Mirta picass", 0, 0, 0, 12000],
-      ["Naty", 0, 0, 0, 12000],
-      ["Romero", 8, 143000, 0, 60000]
-    ].map((cliente, indice) => ({
-      id: idNuevo(),
-      nombre: cliente[0],
-      direccion: "",
-      horario: "",
-      precioPan: "",
-      precioFactura: "",
-      limite: cliente[4],
-      orden: indice + 1
-    }));
-
+  function baseMinima() {
+    const clientes = [["Adolfina",20000],["Antonia",20000],["Maria",15000],["Serafin",25000],["Clara",12000],["Mercedes",50000],["Mirta picass",12000],["Naty",12000],["Romero",60000]].map((c,i)=>({id:idNuevo(),nombre:c[0],direccion:"",horario:"",precioPan:"",precioFactura:"",limite:c[1],orden:i+1}));
     const fecha = hoy();
-    return {
-      usuarioActual: "",
-      ingresos: [],
-      precios: [
-        { id: idNuevo(), producto: "Pan", precio: 2200, pesable: true },
-        { id: idNuevo(), producto: "Factura", precio: 350, pesable: false },
-        { id: idNuevo(), producto: "Prepizza", precio: 1000, pesable: false },
-        { id: idNuevo(), producto: "Pan rallado", precio: 800, pesable: true }
-      ],
-      pedidos: [],
-      panParaRallar: [],
-      clientes,
-      fechaActual: fecha,
-      actualizado: Date.now(),
-      dias: {
-        [fecha]: clientes.map((cliente, indice) => ({
-          clienteId: cliente.id,
-          kg: [2, 4, 3, 2, 0, 0, 0, 0, 8][indice] || 0,
-          deudaAnterior: [4400, 8600, -200, 8800, 0, 84000, 0, 0, 143000][indice] || 0,
-          pago: [4400, 8500, 0, 4400, 0, 0, 0, 0, 0][indice] || 0,
-          mp: 0,
-          otros: 0,
-          factura: 0,
-          prepizza: 0,
-          rallado: indice === 0 ? 4 : 0,
-          panParaRallarKg: 0,
-          otrosProductos: [],
-          observacion: "",
-          horaPago: ""
-        }))
-      }
-    };
+    return {usuarioActual:"",ingresos:[],precios:[{id:idNuevo(),producto:"Pan",precio:2200,pesable:true},{id:idNuevo(),producto:"Factura",precio:350,pesable:false},{id:idNuevo(),producto:"Prepizza",precio:1000,pesable:false},{id:idNuevo(),producto:"Pan rallado",precio:800,pesable:true}],pedidos:[],panParaRallar:[],clientes,fechaActual:fecha,actualizado:Date.now(),dias:{[fecha]:clientes.map(c=>({clienteId:c.id,kg:0,deudaAnterior:0,pago:0,mp:0,otros:0,factura:0,prepizza:0,rallado:0,panParaRallarKg:0,otrosProductos:[],observacion:"",horaPago:""}))}};
   }
 
-  function repararDatos(datos) {
-    const base = baseCompleta();
-    const limpio = datos && typeof datos === "object" ? datos : {};
-    let reparado = false;
-
-    if (!Array.isArray(limpio.precios) || limpio.precios.length === 0) {
-      limpio.precios = base.precios;
-      reparado = true;
-    }
-    if (!Array.isArray(limpio.clientes) || limpio.clientes.length === 0) {
-      limpio.clientes = base.clientes;
-      reparado = true;
-    }
-    if (!limpio.fechaActual) {
-      limpio.fechaActual = hoy();
-      reparado = true;
-    }
-    if (!limpio.actualizado) {
-      limpio.actualizado = Date.now();
-      reparado = true;
-    }
-    if (!limpio.dias || typeof limpio.dias !== "object") {
-      limpio.dias = {};
-      reparado = true;
-    }
-    if (!Array.isArray(limpio.dias[limpio.fechaActual])) {
-      limpio.dias[limpio.fechaActual] = [];
-      reparado = true;
-    }
-
-    limpio.clientes.forEach((cliente, indice) => {
-      if (!cliente.orden) {
-        cliente.orden = indice + 1;
-        reparado = true;
-      }
-      if (!limpio.dias[limpio.fechaActual].some((fila) => fila.clienteId === cliente.id)) {
-        limpio.dias[limpio.fechaActual].push({
-          clienteId: cliente.id,
-          kg: 0,
-          deudaAnterior: 0,
-          pago: 0,
-          mp: 0,
-          otros: 0,
-          factura: 0,
-          prepizza: 0,
-          rallado: 0,
-          panParaRallarKg: 0,
-          otrosProductos: [],
-          observacion: "",
-          horaPago: ""
-        });
-        reparado = true;
-      }
+  function reparar(datos) {
+    const base = baseMinima();
+    const d = datos && typeof datos === "object" ? datos : {};
+    if (!Array.isArray(d.clientes) || d.clientes.length === 0) d.clientes = base.clientes;
+    if (!Array.isArray(d.precios) || d.precios.length === 0) d.precios = base.precios;
+    if (!Array.isArray(d.ingresos)) d.ingresos = [];
+    if (!Array.isArray(d.pedidos)) d.pedidos = [];
+    if (!Array.isArray(d.panParaRallar)) d.panParaRallar = [];
+    if (typeof d.usuarioActual !== "string") d.usuarioActual = "";
+    if (!d.fechaActual) d.fechaActual = hoy();
+    if (!d.actualizado) d.actualizado = Date.now();
+    if (!d.dias || typeof d.dias !== "object") d.dias = {};
+    if (!Array.isArray(d.dias[d.fechaActual])) d.dias[d.fechaActual] = [];
+    d.clientes.forEach((cliente, i) => {
+      if (!cliente.orden) cliente.orden = i + 1;
+      if (!d.dias[d.fechaActual].some(f => f.clienteId === cliente.id)) d.dias[d.fechaActual].push({clienteId:cliente.id,kg:0,deudaAnterior:0,pago:0,mp:0,otros:0,factura:0,prepizza:0,rallado:0,panParaRallarKg:0,otrosProductos:[],observacion:"",horaPago:""});
     });
+    return d;
+  }
 
-    if (!Array.isArray(limpio.ingresos)) limpio.ingresos = [];
-    if (!Array.isArray(limpio.pedidos)) limpio.pedidos = [];
-    if (!Array.isArray(limpio.panParaRallar)) limpio.panParaRallar = [];
-    if (typeof limpio.usuarioActual !== "string") limpio.usuarioActual = "";
-
-    return { datos: limpio, reparado };
+  function puntaje(datos) {
+    if (!datos || typeof datos !== "object") return 0;
+    let p = 0;
+    p += Array.isArray(datos.clientes) ? datos.clientes.length * 10 : 0;
+    p += Array.isArray(datos.precios) ? datos.precios.length * 5 : 0;
+    p += Array.isArray(datos.pedidos) ? datos.pedidos.length * 3 : 0;
+    p += Array.isArray(datos.panParaRallar) ? datos.panParaRallar.length * 3 : 0;
+    p += Array.isArray(datos.ingresos) ? Math.min(datos.ingresos.length, 20) : 0;
+    Object.values(datos.dias || {}).forEach(filas => {
+      if (!Array.isArray(filas)) return;
+      p += 3;
+      filas.forEach(fila => {
+        ["kg","deudaAnterior","pago","mp","otros","factura","prepizza","rallado","panParaRallarKg"].forEach(c => { if (numero(fila[c]) !== 0) p += 1; });
+        if (fila.observacion) p += 1;
+        if (Array.isArray(fila.otrosProductos)) p += fila.otrosProductos.length * 2;
+      });
+    });
+    return p;
   }
 
   function leerLocal() {
-    try {
-      return repararDatos(JSON.parse(localStorage.getItem(clave) || "{}")).datos;
-    } catch (error) {
-      return repararDatos({}).datos;
+    try { return reparar(JSON.parse(localStorage.getItem(CLAVE) || "{}")); }
+    catch { return reparar({}); }
+  }
+
+  if (!window.firebase) return;
+  if (!firebase.apps.length) firebase.initializeApp(REPARTO_FIREBASE_CONFIG);
+  const ref = firebase.database().ref("reparto/datos");
+  const setOriginal = localStorage.setItem.bind(localStorage);
+
+  localStorage.setItem = function (key, value) {
+    if (key !== CLAVE) return setOriginal(key, value);
+    let nuevo;
+    try { nuevo = reparar(JSON.parse(value)); }
+    catch { nuevo = leerLocal(); }
+    nuevo.actualizado = Date.now();
+    const texto = JSON.stringify(nuevo);
+    setOriginal(key, texto);
+    if (remotoReferencia && puntaje(nuevo) + 20 < puntaje(remotoReferencia)) {
+      console.warn("No se subio una copia local incompleta a Firebase.");
+      return;
     }
-  }
+    remotoReferencia = JSON.parse(texto);
+    ref.set(nuevo).catch(error => console.error("No se pudo guardar en Firebase", error));
+  };
 
-  try {
-    if (!window.firebase.apps.length) window.firebase.initializeApp(REPARTO_FIREBASE_CONFIG);
-    const ref = window.firebase.database().ref("reparto/datos");
-    const setItemOriginal = localStorage.setItem.bind(localStorage);
-
-    localStorage.setItem = function setItemConFirebase(key, value) {
-      if (key !== clave) {
-        setItemOriginal(key, value);
-        return;
-      }
-
-      let datosParaGuardar;
-      try {
-        datosParaGuardar = repararDatos(JSON.parse(value)).datos;
-      } catch (error) {
-        datosParaGuardar = leerLocal();
-      }
-
-      datosParaGuardar.actualizado = Date.now();
-      const texto = JSON.stringify(datosParaGuardar);
-      setItemOriginal(key, texto);
-
-      try {
-        ref.set(datosParaGuardar);
-      } catch (error) {
-        console.error("No se pudo guardar en Firebase", error);
-      }
-    };
-
-    const localInicial = repararDatos(leerLocal()).datos;
-    setItemOriginal(clave, JSON.stringify(localInicial));
-
-    ref.once("value").then((snapshot) => {
-      const remoto = repararDatos(snapshot.val());
-      const local = leerLocal();
-
-      if (!snapshot.val() || remoto.reparado || Number(local.actualizado || 0) >= Number(remoto.datos.actualizado || 0)) {
-        ref.set(local);
-        return;
-      }
-
-      const textoRemoto = JSON.stringify(remoto.datos);
-      if (localStorage.getItem(clave) === textoRemoto) return;
-      setItemOriginal(clave, textoRemoto);
-      if (document.readyState !== "loading") window.location.reload();
-    }).catch((error) => {
-      console.error("No se pudo leer Firebase", error);
-    });
-  } catch (error) {
-    console.error("No se pudo iniciar Firebase", error);
-  }
+  ref.once("value").then(snapshot => {
+    const remoto = reparar(snapshot.val());
+    const local = leerLocal();
+    remotoReferencia = remoto;
+    if (!snapshot.val()) { ref.set(local); return; }
+    if (puntaje(local) > puntaje(remoto) + 20) { ref.set(local); remotoReferencia = local; return; }
+    if (puntaje(local) + 20 < puntaje(remoto) || numero(remoto.actualizado) > numero(local.actualizado)) {
+      setOriginal(CLAVE, JSON.stringify(remoto));
+      if (document.readyState !== "loading") location.reload();
+      return;
+    }
+    ref.set(local);
+  }).catch(error => console.error("No se pudo leer Firebase", error));
 })();
