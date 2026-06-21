@@ -28,6 +28,18 @@
     ].join("|");
   }
 
+  function htmlSeguro(texto) {
+    return String(texto || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+
+  function numeroPlanilla(valor) {
+    return numero(valor).toLocaleString("es-AR", { maximumFractionDigits: 3 });
+  }
+
   window.totalProductoOtro = function totalProductoOtroCorregido(producto) {
     if (producto.pesable) {
       const kg = numero(producto.kgFinal || producto.cantidad);
@@ -117,6 +129,84 @@
     guardarDatos();
     if (typeof renderReparto === "function") renderReparto();
     else renderHistorialPedidosDia();
+  };
+
+  window.exportarPdfReparto = function exportarPdfReparto() {
+    const fecha = datos.fechaActual;
+    const filas = clientesOrdenados().map((cliente) => {
+      const fila = filaPorCliente(fecha, cliente.id) || {};
+      return { cliente, fila };
+    });
+    const fechaTexto = etiquetaFecha(fecha);
+    const generado = new Date().toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
+    const filasHtml = filas.map(({ cliente, fila }) => {
+      const debe = debeFila(fila, cliente);
+      const cuenta = cuentaFila(fila, cliente);
+      return `<tr>
+        <td>${htmlSeguro(cliente.nombre)}</td>
+        <td class="num kg">${numeroPlanilla(fila.kg)}</td>
+        <td class="num">${numeroPlanilla(fila.factura)}</td>
+        <td class="num">${numeroPlanilla(fila.prepizza)}</td>
+        <td class="num">${numeroPlanilla(fila.rallado)}</td>
+        <td class="num">${numeroPlanilla(fila.panParaRallarKg)}</td>
+        <td>${htmlSeguro(fila.observacion)}</td>
+        <td class="num chica">${pesos(debe)}</td>
+        <td class="num chica">${pesos(cuenta)}</td>
+      </tr>`;
+    }).join("");
+
+    const ventana = window.open("", "_blank");
+    if (!ventana) {
+      alert("El navegador bloqueo la ventana del PDF. Permiti ventanas emergentes para esta pagina.");
+      return;
+    }
+    ventana.document.write(`<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reparto ${fechaTexto}</title>
+<style>
+  @page { size: A4 landscape; margin: 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; color: #111827; margin: 0; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .meta { color: #4b5563; font-size: 12px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #2f67b1; color: white; text-align: left; }
+  th, td { border: 1px solid #9db5d4; padding: 6px 7px; vertical-align: top; }
+  tbody tr:nth-child(odd) { background: #dbe8fb; }
+  .num { text-align: right; white-space: nowrap; }
+  .kg { font-weight: 700; font-size: 14px; }
+  .chica { font-size: 11px; }
+  .acciones { margin: 0 0 12px; }
+  button { padding: 8px 12px; font-weight: 700; }
+  @media print { .acciones { display: none; } }
+</style>
+</head>
+<body>
+  <div class="acciones"><button onclick="window.print()">Guardar / imprimir PDF</button></div>
+  <h1>Reparto ${fechaTexto}</h1>
+  <div class="meta">Panaderia Josue - generado ${generado}</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Kg pan</th>
+        <th>Fact.</th>
+        <th>Prepizza</th>
+        <th>Pan rallado</th>
+        <th>Pan para rallar</th>
+        <th>Observaciones</th>
+        <th>Debe</th>
+        <th>Cuenta</th>
+      </tr>
+    </thead>
+    <tbody>${filasHtml}</tbody>
+  </table>
+  <script>setTimeout(() => window.print(), 300);<\/script>
+</body>
+</html>`);
+    ventana.document.close();
   };
 
   try {
