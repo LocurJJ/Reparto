@@ -29,6 +29,37 @@
 
     <section id="bloqueReportes" class="reportes">
       <article class="tarjeta">
+        <h2>Cuentas</h2>
+        <div class="formulario dos-columnas">
+          <label>Cliente
+            <select id="cuentaCliente"></select>
+          </label>
+          <label>Desde
+            <input id="cuentaDesde" type="date">
+          </label>
+          <label>Hasta
+            <input id="cuentaHasta" type="date">
+          </label>
+          <button type="button" onclick="exportarResumenCuenta()">Exportar cuenta PDF</button>
+        </div>
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Dia</th>
+                <th>Kg</th>
+                <th>Debe</th>
+                <th>Pago EF</th>
+                <th>Pago MP</th>
+                <th>Cuenta</th>
+                <th>Extras</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCuentaCliente"></tbody>
+          </table>
+        </div>
+      </article>
+      <article class="tarjeta">
         <h2>Ingreso total por dia</h2>
         <canvas id="graficoTotal" width="700" height="260"></canvas>
       </article>
@@ -56,5 +87,6 @@
   <script src="firebase-sync.js?v=5"></script>
   <script src="script.js?v=5"></script>
   <script src="debt-whatsapp.js?v=5"></script>
+  <script src="hotfix.js?v=4"></script>
 </body>
 </html>
