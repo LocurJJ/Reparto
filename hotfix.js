@@ -40,6 +40,59 @@
     return numero(valor).toLocaleString("es-AR", { maximumFractionDigits: 3 });
   }
 
+  function fechasRango(desde, hasta) {
+    return fechasOrdenadas().filter((fecha) => (!desde || fecha >= desde) && (!hasta || fecha <= hasta));
+  }
+
+  function detalleExtras(fila) {
+    const partes = [];
+    if (numero(fila.factura) > 0) partes.push(`Factura x ${numeroPlanilla(fila.factura)}`);
+    if (numero(fila.prepizza) > 0) partes.push(`Prepizza x ${numeroPlanilla(fila.prepizza)}`);
+    if (numero(fila.rallado) > 0) partes.push(`Pan rallado ${numeroPlanilla(fila.rallado)}`);
+    if (numero(fila.panParaRallarKg) > 0) partes.push(`Pan para rallar ${numeroPlanilla(fila.panParaRallarKg)} kg`);
+    (fila.otrosProductos || []).forEach((producto) => {
+      const cantidad = producto.pesable ? `${numeroPlanilla(producto.kgFinal || producto.cantidad)} kg` : `x ${numeroPlanilla(producto.cantidad)}`;
+      partes.push(`${producto.nombre} ${cantidad}`);
+    });
+    return partes.join("; ");
+  }
+
+  function abrirDocumentoImprimible(titulo, cuerpo, estilosExtra) {
+    const ventana = window.open("", "_blank");
+    if (!ventana) {
+      alert("El navegador bloqueo la ventana del PDF. Permiti ventanas emergentes para esta pagina.");
+      return;
+    }
+    ventana.document.write(`<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>${htmlSeguro(titulo)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; color: #111827; margin: 0; }
+  h1 { margin: 0 0 4px; }
+  .meta { color: #4b5563; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #2f67b1; color: white; text-align: left; }
+  th, td { border: 1px solid #9db5d4; vertical-align: top; }
+  tbody tr:nth-child(odd) { background: #dbe8fb; }
+  .num { text-align: right; white-space: nowrap; }
+  .acciones { margin: 0 0 12px; }
+  button { padding: 8px 12px; font-weight: 700; }
+  @media print { .acciones { display: none; } }
+  ${estilosExtra || ""}
+</style>
+</head>
+<body>
+  <div class="acciones"><button onclick="window.print()">Guardar / imprimir PDF</button></div>
+  ${cuerpo}
+  <script>setTimeout(() => window.print(), 300);<\/script>
+</body>
+</html>`);
+    ventana.document.close();
+  }
+
   window.totalProductoOtro = function totalProductoOtroCorregido(producto) {
     if (producto.pesable) {
       const kg = numero(producto.kgFinal || producto.cantidad);
@@ -133,85 +186,89 @@
 
   window.exportarPdfReparto = function exportarPdfReparto() {
     const fecha = datos.fechaActual;
-    const filas = clientesOrdenados().map((cliente) => {
-      const fila = filaPorCliente(fecha, cliente.id) || {};
-      return { cliente, fila };
-    });
     const fechaTexto = etiquetaFecha(fecha);
     const generado = new Date().toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
-    const filasHtml = filas.map(({ cliente, fila }) => {
-      const debe = debeFila(fila, cliente);
-      const cuenta = cuentaFila(fila, cliente);
-      return `<tr>
-        <td>${htmlSeguro(cliente.nombre)}</td>
-        <td class="num kg">${numeroPlanilla(fila.kg)}</td>
-        <td class="num">${numeroPlanilla(fila.factura)}</td>
-        <td class="num">${numeroPlanilla(fila.prepizza)}</td>
-        <td class="num">${numeroPlanilla(fila.rallado)}</td>
-        <td class="num">${numeroPlanilla(fila.panParaRallarKg)}</td>
-        <td>${htmlSeguro(fila.observacion)}</td>
-        <td class="num chica">${pesos(debe)}</td>
-        <td class="num chica">${pesos(cuenta)}</td>
-      </tr>`;
+    const filasHtml = clientesOrdenados().map((cliente) => {
+      const fila = filaPorCliente(fecha, cliente.id) || {};
+      return `<tr><td>${htmlSeguro(cliente.nombre)}</td><td class="num kg">${numeroPlanilla(fila.kg)}</td></tr>`;
     }).join("");
 
-    const ventana = window.open("", "_blank");
-    if (!ventana) {
-      alert("El navegador bloqueo la ventana del PDF. Permiti ventanas emergentes para esta pagina.");
-      return;
-    }
-    ventana.document.write(`<!doctype html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Reparto ${fechaTexto}</title>
-<style>
-  @page { size: A4 landscape; margin: 10mm; }
-  * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; color: #111827; margin: 0; }
-  h1 { font-size: 24px; margin: 0 0 4px; }
-  .meta { color: #4b5563; font-size: 12px; margin-bottom: 12px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th { background: #2f67b1; color: white; text-align: left; }
-  th, td { border: 1px solid #9db5d4; padding: 6px 7px; vertical-align: top; }
-  tbody tr:nth-child(odd) { background: #dbe8fb; }
-  .num { text-align: right; white-space: nowrap; }
-  .kg { font-weight: 700; font-size: 14px; }
-  .chica { font-size: 11px; }
-  .acciones { margin: 0 0 12px; }
-  button { padding: 8px 12px; font-weight: 700; }
-  @media print { .acciones { display: none; } }
-</style>
-</head>
-<body>
-  <div class="acciones"><button onclick="window.print()">Guardar / imprimir PDF</button></div>
-  <h1>Reparto ${fechaTexto}</h1>
-  <div class="meta">Panaderia Josue - generado ${generado}</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Cliente</th>
-        <th>Kg pan</th>
-        <th>Fact.</th>
-        <th>Prepizza</th>
-        <th>Pan rallado</th>
-        <th>Pan para rallar</th>
-        <th>Observaciones</th>
-        <th>Debe</th>
-        <th>Cuenta</th>
-      </tr>
-    </thead>
-    <tbody>${filasHtml}</tbody>
-  </table>
-  <script>setTimeout(() => window.print(), 300);<\/script>
-</body>
-</html>`);
-    ventana.document.close();
+    abrirDocumentoImprimible(
+      `Reparto ${fechaTexto}`,
+      `<h1>Reparto ${fechaTexto}</h1><div class="meta">Panaderia Josue - generado ${generado}</div><table><thead><tr><th>Cliente</th><th>Kg pan</th></tr></thead><tbody>${filasHtml}</tbody></table>`,
+      `@page { size: A4 portrait; margin: 10mm; } body { padding: 0; } h1 { font-size: 34px; } .meta { font-size: 16px; } table { font-size: 22px; } th, td { padding: 9px 12px; } .kg { font-size: 26px; font-weight: 800; } th:last-child, td:last-child { width: 32%; }`
+    );
   };
+
+  function completarSelectClientesCuenta() {
+    const select = document.getElementById("cuentaCliente");
+    if (!select) return;
+    select.innerHTML = clientesOrdenados().map((cliente) => `<option value="${cliente.id}">${htmlSeguro(cliente.nombre)}</option>`).join("");
+    const fechas = fechasOrdenadas();
+    const desde = document.getElementById("cuentaDesde");
+    const hasta = document.getElementById("cuentaHasta");
+    if (desde && !desde.value) desde.value = fechas[0] || hoy();
+    if (hasta && !hasta.value) hasta.value = fechas[fechas.length - 1] || hoy();
+  }
+
+  function filasResumenCuenta(clienteId, desde, hasta) {
+    const cliente = datos.clientes.find((item) => item.id === clienteId);
+    if (!cliente) return [];
+    return fechasRango(desde, hasta).map((fecha) => {
+      const fila = filaPorCliente(fecha, clienteId);
+      if (!fila) return null;
+      return {
+        fecha,
+        kg: numero(fila.kg),
+        debe: debeFila(fila, cliente),
+        pago: numero(fila.pago),
+        mp: numero(fila.mp),
+        cuenta: cuentaFila(fila, cliente),
+        extras: detalleExtras(fila)
+      };
+    }).filter(Boolean);
+  }
+
+  window.renderResumenCuenta = function renderResumenCuenta() {
+    const cuerpo = document.getElementById("tablaCuentaCliente");
+    if (!cuerpo) return;
+    const clienteId = document.getElementById("cuentaCliente").value;
+    const desde = document.getElementById("cuentaDesde").value;
+    const hasta = document.getElementById("cuentaHasta").value;
+    const filas = filasResumenCuenta(clienteId, desde, hasta);
+    cuerpo.innerHTML = filas.map((fila) => `<tr><td>${etiquetaFecha(fila.fecha)}</td><td>${numeroPlanilla(fila.kg)}</td><td>${pesos(fila.debe)}</td><td>${pesos(fila.pago)}</td><td>${pesos(fila.mp)}</td><td>${pesos(fila.cuenta)}</td><td>${htmlSeguro(fila.extras) || "-"}</td></tr>`).join("") || `<tr><td colspan="7">No hay movimientos en ese rango.</td></tr>`;
+  };
+
+  window.exportarResumenCuenta = function exportarResumenCuenta() {
+    const clienteId = document.getElementById("cuentaCliente").value;
+    const desde = document.getElementById("cuentaDesde").value;
+    const hasta = document.getElementById("cuentaHasta").value;
+    const cliente = datos.clientes.find((item) => item.id === clienteId);
+    if (!cliente) return;
+    const filas = filasResumenCuenta(clienteId, desde, hasta);
+    const filasHtml = filas.map((fila) => `<tr><td>${etiquetaFecha(fila.fecha)}</td><td class="num">${numeroPlanilla(fila.kg)}</td><td class="num">${pesos(fila.debe)}</td><td class="num">${pesos(fila.pago)}</td><td class="num">${pesos(fila.mp)}</td><td class="num">${pesos(fila.cuenta)}</td><td>${htmlSeguro(fila.extras) || "-"}</td></tr>`).join("") || `<tr><td colspan="7">No hay movimientos en ese rango.</td></tr>`;
+    const generado = new Date().toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
+    abrirDocumentoImprimible(
+      `Cuenta ${cliente.nombre}`,
+      `<h1>Cuenta ${htmlSeguro(cliente.nombre)}</h1><div class="meta">Desde ${etiquetaFecha(desde)} hasta ${etiquetaFecha(hasta)} - generado ${generado}</div><table><thead><tr><th>Dia</th><th>Kg</th><th>Debe</th><th>Pago EF</th><th>Pago MP</th><th>Cuenta</th><th>Extras</th></tr></thead><tbody>${filasHtml}</tbody></table>`,
+      `@page { size: A4 landscape; margin: 10mm; } h1 { font-size: 28px; } .meta { font-size: 14px; } table { font-size: 13px; } th, td { padding: 7px 8px; }`
+    );
+  };
+
+  function inicializarCuentasReporte() {
+    if (document.body.dataset.page !== "reportes") return;
+    completarSelectClientesCuenta();
+    ["cuentaCliente", "cuentaDesde", "cuentaHasta"].forEach((id) => {
+      const elemento = document.getElementById(id);
+      if (elemento) elemento.addEventListener("change", window.renderResumenCuenta);
+    });
+    window.renderResumenCuenta();
+  }
 
   try {
     renderPedidosInicio();
     if (document.body.dataset.page === "reparto" && typeof renderReparto === "function") renderReparto();
+    inicializarCuentasReporte();
   } catch (error) {
     console.warn("No se pudo aplicar hotfix de pedidos", error);
   }
