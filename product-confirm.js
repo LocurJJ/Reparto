@@ -47,10 +47,10 @@
         <h2>Confirmar producto</h2>
         <p id="confirmacionProductoNombre">Producto</p>
         <label id="confirmacionProductoCantidadLabel" for="confirmacionProductoCantidad">Cantidad a confirmar</label>
-        <input id="confirmacionProductoCantidad" class="input-pago-rapido" type="number" inputmode="decimal" min="0" step="1" placeholder="Cantidad">
+        <input id="confirmacionProductoCantidad" class="input-pago-rapido" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Cantidad">
         <label id="confirmacionProductoPrecioGrupo" for="confirmacionProductoPrecio">
           Precio por kg
-          <input id="confirmacionProductoPrecio" class="input-pago-rapido" type="number" inputmode="decimal" min="0" step="1" placeholder="Precio por kg">
+          <input id="confirmacionProductoPrecio" class="input-pago-rapido" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Precio por kg">
         </label>
         <div class="modal-total">
           <button type="button" id="cancelarConfirmacionProducto">Cancelar</button>
@@ -62,9 +62,13 @@
     document.getElementById("cancelarConfirmacionProducto").addEventListener("click", cerrar);
     document.getElementById("guardarConfirmacionProducto").addEventListener("click", confirmar);
     ["confirmacionProductoCantidad", "confirmacionProductoPrecio"].forEach((id) => {
-      document.getElementById(id).addEventListener("keydown", (evento) => {
+      const input = document.getElementById(id);
+      input.addEventListener("keydown", (evento) => {
         if (evento.key === "Enter") confirmar();
         if (evento.key === "Escape") cerrar();
+      });
+      input.addEventListener("input", () => {
+        input.value = input.value.replace(/[^0-9.,]/g, "");
       });
     });
   }
@@ -77,7 +81,6 @@
     document.getElementById("confirmacionProductoNombre").textContent = producto.nombre;
     document.getElementById("confirmacionProductoCantidadLabel").textContent = producto.pesable ? "Kilos a confirmar" : "Cantidad a confirmar";
     document.getElementById("confirmacionProductoCantidad").value = producto.pesable ? (producto.kgFinal || producto.cantidad || "") : (producto.cantidad || "");
-    document.getElementById("confirmacionProductoCantidad").step = producto.pesable ? "0.001" : "1";
     document.getElementById("confirmacionProductoPrecioGrupo").classList.toggle("oculto", !producto.pesable);
     document.getElementById("confirmacionProductoPrecio").value = producto.precioKilo || producto.precio || "";
     document.getElementById("modalConfirmacionProducto").classList.remove("oculto");
